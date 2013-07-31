@@ -19,7 +19,7 @@ GitClone.prototype.cloneRepos = function() {
 	console.log('Cloning [%s] repositories for user [%s]', this.repos.length, this.user);
 	for (var i=0,len=this.repos.length; i<len; i++) {
 		var repo = this.repos[i];
-		console.log('Repos [%s]', repo["name"]);
+		console.log('Repos [%s]', repo.name);
 	}
 };
 
@@ -39,8 +39,17 @@ GitClone.prototype.getRepos = function(success) {
 };
 
 GitClone.prototype.readFile = function(name) {
-	// this.repos = JSON.parse(fs.readFileSync(name, 'utf8'));
+	this.repos = JSON.parse(fs.readFileSync(name, 'utf8'));
 };
 
-var app = new GitClone('BoyCook');
-app.clone();
+var args = process.argv.splice(2);
+
+if (args.length != 1) {
+	console.log('ERROR - you must pass the correct paramaters, usage:');
+	console.log('node gitclone.js {username} {action}');
+	process.exit(1);
+}
+
+new GitClone(args[0]).clone();
+
+
