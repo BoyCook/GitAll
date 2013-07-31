@@ -1,8 +1,9 @@
 var fs = require('fs');
 var request = require('request');
 
-function GitClone(user) {
+function GitClone(user, targetDir) {
 	this.user = user;
+	this.targetDir = (targetDir ? targetDir : './');
 	this.repos = [];
 	this.apiURL = 'https://api.github.com';
 }
@@ -16,7 +17,7 @@ GitClone.prototype.clone = function() {
 };
 
 GitClone.prototype.cloneRepos = function() {
-	console.log('Cloning [%s] repositories for user [%s]', this.repos.length, this.user);
+	console.log('Cloning [%s] repositories for user [%s] to [%s]', this.repos.length, this.user, this.targetDir);
 	for (var i=0,len=this.repos.length; i<len; i++) {
 		var repo = this.repos[i];
 		console.log('Repos [%s]', repo.name);
