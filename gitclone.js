@@ -30,25 +30,21 @@ GitClone.prototype.updateRepos = function() {
 		if (fs.existsSync(repoLocation) && fs.statSync(repoLocation).isDirectory()) {
 			var gitLoc = repoLocation + '/.git';
 			if (fs.existsSync(gitLoc) && fs.statSync(gitLoc).isDirectory()) {
-				console.log('Found git repos [%s]', item);	
+				console.log('Found git repos [%s], updating...', item);	
+				console.log('- `cd %s`', repoLocation + '/' + item);
+				console.log('- `git pull`');
 			}
-			// console.log('Found dir [%s]', item);
-			// var subDirs = fs.readdirSync(this.targetDir + item);
-			// for (var x=0,len=subDirs.length; x<len; x++) {
-			// 	var subDir = subDirs[x];
-			// 	if (fs.statSync(this.targetDir + item + '/' + subDir).isDirectory() && subDir === '.git') {
-			// 		console.log('--- Found sub dir [%s]', this.targetDir + item + '/' + subDir);
-			// 	}
-			// }
 		}
 	}
 };
 
 GitClone.prototype.cloneRepos = function() {
 	console.log('Cloning [%s] repositories for user [%s] to [%s]', this.repos.length, this.user, this.targetDir);
+	var gitURLBase = 'git@github.com:' + this.user + '/';
 	for (var i=0,len=this.repos.length; i<len; i++) {
 		var repo = this.repos[i];
 		console.log('Repos [%s]', repo.name);
+		console.log('- `git clone %s`', gitURLBase + repo.name + '.git');
 	}
 };
 
