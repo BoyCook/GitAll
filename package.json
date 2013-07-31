@@ -1,0 +1,34 @@
+{
+    "name": "git-clone",
+    "version": "0.0.1-RC01",
+    "author": "BoyCook",
+    "description": "Tool for cloning all repositories of a user or organization",
+    "contributors": [
+        {
+            "name": "Craig Cook",
+            "id": "BoyCook"
+        }
+    ],
+    "scripts": {
+        "start": "node gitclone.js",
+        "test": "make test",
+        "predeploy": "echo This will be run before deploying the app",
+        "postdeploy": "echo This will be run after deploying the app"
+    },
+    "main": "./lib/server",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/BoyCook/GitClone.git"
+    },
+    "keywords": [
+        "Git",
+        "Clone",
+        "GitClone"
+    ],
+    "dependencies": {
+        "request": "*"
+    },
+    "engines": {
+        "node": ">=0.6"
+    }
+}
