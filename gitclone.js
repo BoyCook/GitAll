@@ -1,5 +1,6 @@
 var fs = require('fs');
 var request = require('request');
+var spawn = require('child_process').spawn;
 
 function GitClone(user, targetDir) {
 	this.user = user;
@@ -22,7 +23,25 @@ GitClone.prototype.update = function() {
 };
 
 GitClone.prototype.updateRepos = function() {
+	this._updateRepos(this.findRepos());
+	// process.cwd()
+};
+
+GitClone.prototype._updateRepos = function(repos) {
+	for (var i=0,len=repos.length; i<len; i++) {
+		this.updateRepo(repos[i]);
+	}
+	console.log('Updated [%s] repos', repos.length);
+};
+
+GitClone.prototype.updateRepo = function(repo) {
+	console.log('Updating repo [%s]', repo);			
+	this.doSpawn('sh', ['pull.sh', repo]);
+};
+
+GitClone.prototype.findRepos = function() {
 	var items = fs.readdirSync(this.targetDir);
+	var repos = [];
 	//Read children of targetDir
 	for (var i=0,len=items.length; i<len; i++) {
 		var item = items[i];
@@ -30,12 +49,11 @@ GitClone.prototype.updateRepos = function() {
 		if (fs.existsSync(repoLocation) && fs.statSync(repoLocation).isDirectory()) {
 			var gitLoc = repoLocation + '/.git';
 			if (fs.existsSync(gitLoc) && fs.statSync(gitLoc).isDirectory()) {
-				console.log('Found git repos [%s], updating...', item);	
-				console.log('- `cd %s`', repoLocation + '/' + item);
-				console.log('- `git pull`');
+				repos.push(repoLocation);
 			}
 		}
 	}
+	return repos;
 };
 
 GitClone.prototype.cloneRepos = function() {
@@ -65,6 +83,15 @@ GitClone.prototype.getRepos = function(success) {
 
 GitClone.prototype.readFile = function(name) {
 	this.repos = JSON.parse(fs.readFileSync(name, 'utf8'));
+};
+
+GitClone.prototype.doSpawn = function(name, args) {
+	var log = function(data) {
+		console.log(String(data));
+	};
+    var spawned = spawn(name, args);
+    spawned.stdout.on('data', log);
+    spawned.stderr.on('data', log);	
 };
 
 function exit(msg) {
