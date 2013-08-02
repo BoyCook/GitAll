@@ -17,7 +17,7 @@
     },
     "main": "lib/gitclone",
     "bin": {
-        "grunt": "bin/gitclone"
+        "gitclone": "bin/gitclone"
     },    
     "repository": {
         "type": "git",
