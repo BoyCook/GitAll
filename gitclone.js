@@ -7,6 +7,7 @@ function GitClone(user, targetDir) {
 	this.targetDir = (targetDir ? targetDir : '.');
 	this.repos = [];
 	this.apiURL = 'https://api.github.com';
+	this.repoURLBase = 'git@github.com:' + this.user + '/';
 }
 
 GitClone.prototype.clone = function() {
@@ -57,13 +58,16 @@ GitClone.prototype.findRepos = function() {
 };
 
 GitClone.prototype.cloneRepos = function() {
-	console.log('Cloning [%s] repositories for user [%s] to [%s]', this.repos.length, this.user, this.targetDir);
-	var gitURLBase = 'git@github.com:' + this.user + '/';
 	for (var i=0,len=this.repos.length; i<len; i++) {
-		var repo = this.repos[i];
-		console.log('Repos [%s]', repo.name);
-		console.log('- `git clone %s`', gitURLBase + repo.name + '.git');
+		this.cloneRepo(this.repos[i]);
 	}
+	console.log('Cloned [%s] repositories for user [%s] to [%s]', this.repos.length, this.user, this.targetDir);
+};
+
+GitClone.prototype.cloneRepo = function(repo) {
+	var repoURL = this.repoURLBase + repo.name + '.git';
+	console.log('Cloning repo [%s]', repoURL);			
+	this.doSpawn('sh', ['clone.sh', this.targetDir, repoURL]);	
 };
 
 GitClone.prototype.getRepos = function(success) {
