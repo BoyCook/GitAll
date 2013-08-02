@@ -1,0 +1,34 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var GitClone = require('../lib/gitclone');
+
+function exit(msg) {
+	console.log(msg);
+	process.exit(1);	
+}
+
+var args = process.argv.splice(2);
+
+if (args.length < 2) {
+	console.log('ERROR - you must pass the correct paramaters, usage:');
+	exit('gitclone {username} {action} {dir}')
+}
+
+var user = args[0];
+var action = args[1];
+var dir = args[2];
+
+switch (action) {
+	case "clone":
+		new GitClone(user, dir).clone();
+		break;
+	case "update":
+		new GitClone(user, dir).update();
+		break;	
+	default:
+		exit('You must use a valid action [clone|update]')
+		break;			
+}
+
