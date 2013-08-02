@@ -1,4 +1,4 @@
-### About
+## About
 
 This is tool for cloning all repositories of a user or organization
 
@@ -8,11 +8,11 @@ This is tool for cloning all repositories of a user or organization
 * `{action}` either clone or update
 * `{dir}` this is the target dir, defaults to current dir '.'
 
-### Usage 
+## Usage 
 
 	node gitclone.js {user} {action} {dir}
 
-### Example
+## Example
 
 Clone all the repositories for the user `BoyCook` (https://github.com/BoyCook) into the directory `boycook`:
 
