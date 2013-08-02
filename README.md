@@ -21,3 +21,10 @@ Clone all the repositories for the user `BoyCook` (https://github.com/BoyCook) i
 Update all the repositories for the user `BoyCook` (https://github.com/BoyCook) which exist in directory `boycook`:
 
 	node gitclone.js BoyCook update /Users/boycook/code/boycook
+
+# Install from source
+
+Install to `/usr/local/lib/node_modules/gitclone`
+
+	sudo npm install . -g
+	

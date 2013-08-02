@@ -1,5 +1,5 @@
 {
-    "name": "git-clone",
+    "name": "gitclone",
     "version": "0.0.1-RC01",
     "author": "BoyCook",
     "description": "Tool for cloning all repositories of a user or organization",
@@ -15,7 +15,10 @@
         "predeploy": "echo This will be run before deploying the app",
         "postdeploy": "echo This will be run after deploying the app"
     },
-    "main": "./lib/server",
+    "main": "lib/gitclone",
+    "bin": {
+        "grunt": "bin/gitclone"
+    },    
     "repository": {
         "type": "git",
         "url": "https://github.com/BoyCook/GitClone.git"
