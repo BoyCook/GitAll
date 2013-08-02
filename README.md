@@ -10,17 +10,17 @@ This is tool for cloning all repositories of a user or organization
 
 ## Usage 
 
-	node gitclone.js {user} {action} {dir}
+	gitclone {user} {action} {dir}
 
 ## Example
 
 Clone all the repositories for the user `BoyCook` (https://github.com/BoyCook) into the directory `boycook`:
 
-	node gitclone.js BoyCook clone /Users/boycook/code/boycook
+	gitclone BoyCook clone /Users/boycook/code/boycook
 
 Update all the repositories for the user `BoyCook` (https://github.com/BoyCook) which exist in directory `boycook`:
 
-	node gitclone.js BoyCook update /Users/boycook/code/boycook
+	gitclone BoyCook update /Users/boycook/code/boycook
 
 # Install from source
 
