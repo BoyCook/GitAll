@@ -2,30 +2,57 @@
 
 'use strict';
 
+var fs = require('fs');
 var GitClone = require('../lib/gitclone');
+//TODO: read from $HOME/.gitclone/config.json
+var confFile = '/Users/boycook/.gitclone/config.json';
 
 function exit(msg) {
 	console.log(msg);
+	console.log('Usage: gitclone {action} {username} {dir}');
 	process.exit(1);	
 }
 
-var args = process.argv.splice(2);
-
-if (args.length < 2) {
-	console.log('ERROR - you must pass the correct paramaters, usage:');
-	exit('gitclone {username} {action} {dir}')
+function readFile(name) {
+	return JSON.parse(fs.readFileSync(name, 'utf8'));
 }
 
-var user = args[0];
-var action = args[1];
-var dir = args[2];
+function check(key, value) {
+	if (typeof value === "undefined") {
+		exit('You must specify [' + key +']');
+	}
+}
+
+var args = process.argv.splice(2);
+var action = args[0];
+var username = undefined;
+var dir = undefined;
+
+if (fs.existsSync(confFile)) {
+	var conf = readFile(confFile);
+	username = conf.username;
+	dir = conf.dir;
+}
+
+if (typeof args[1] !== "undefined") {
+	username = args[1];	
+}
+
+if (typeof args[2] !== "undefined") {
+	dir = args[2];
+}
+
+
+check('action', action);
+check('username', username);
+check('dir', dir);
 
 switch (action) {
 	case "clone":
-		new GitClone(user, dir).clone();
+		// new GitClone(username, dir).clone();
 		break;
 	case "update":
-		new GitClone(user, dir).update();
+		// new GitClone(username, dir).update();
 		break;	
 	default:
 		exit('You must use a valid action [clone|update]')
