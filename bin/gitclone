@@ -4,8 +4,7 @@
 
 var fs = require('fs');
 var GitClone = require('../lib/gitclone');
-//TODO: read from $HOME/.gitclone/config.json
-var confFile = '/Users/boycook/.gitclone/config.json';
+var confFile = process.env['HOME'] + '/.gitclone/config.json';
 
 function exit(msg) {
 	console.log(msg);
@@ -45,8 +44,6 @@ if (typeof args[2] !== "undefined") {
 check('action', action);
 check('username', username);
 check('dir', dir);
-
-new GitClone().logToFile('Foobar');
 
 switch (action) {
 	case "clone":
