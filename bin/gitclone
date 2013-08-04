@@ -46,6 +46,8 @@ check('action', action);
 check('username', username);
 check('dir', dir);
 
+new GitClone().logToFile('Foobar');
+
 switch (action) {
 	case "clone":
 		new GitClone(username, dir).clone();
