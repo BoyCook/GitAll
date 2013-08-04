@@ -42,17 +42,16 @@ if (typeof args[2] !== "undefined") {
 	dir = args[2];
 }
 
-
 check('action', action);
 check('username', username);
 check('dir', dir);
 
 switch (action) {
 	case "clone":
-		// new GitClone(username, dir).clone();
+		new GitClone(username, dir).clone();
 		break;
 	case "update":
-		// new GitClone(username, dir).update();
+		new GitClone(username, dir).update();
 		break;	
 	default:
 		exit('You must use a valid action [clone|update]')
