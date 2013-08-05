@@ -21,6 +21,8 @@ You can set some paramaters in the file `$HOME/.gitclone/config.json` to save us
 
 	gitclone {action} {user} {dir}
 
+The final two are optional
+
 ## Example
 
 Clone all the repositories for the user `BoyCook` (https://github.com/BoyCook) into the directory `boycook`:
@@ -34,6 +36,9 @@ Update all the repositories for the user `BoyCook` (https://github.com/BoyCook) 
 If the `username` and `dir` are set in `$HOME/.gitclone/config.json`, these commands become:
 
 	gitclone clone
+
+and
+
 	gitclone update
 
 # Install from source
