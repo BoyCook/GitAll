@@ -36,9 +36,7 @@ Update all the repositories for the user `BoyCook` (https://github.com/BoyCook) 
 If the `username` and `dir` are set in `$HOME/.gitclone/config.json`, these commands become:
 
 	gitclone clone
-
 	gitclone update
-	
 	gitclone status
 
 # Install from source
