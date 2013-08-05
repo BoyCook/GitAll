@@ -1,11 +1,11 @@
 ## About
 
-This is tool for cloning all repositories of a user or organization
+This is tool for cloning and updating all the GitHub repositories of a user or organization in one hit.
 
 ## Params
 
 * `{user}` is the account name. This is case sensitive
-* `{action}` either clone or update
+* `{action}` either `clone`, `update` or `status`
 * `{dir}` this is the target dir, defaults to current dir '.'
 
 ## config.json
@@ -37,9 +37,9 @@ If the `username` and `dir` are set in `$HOME/.gitclone/config.json`, these comm
 
 	gitclone clone
 
-and
-
 	gitclone update
+	
+	gitclone status
 
 # Install from source
 

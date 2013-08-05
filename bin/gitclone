@@ -56,7 +56,7 @@ switch (action) {
 		new GitClone(username, dir).status();
 		break;			
 	default:
-		exit('You must use a valid action [clone|update]')
+		exit('You must use a valid action [clone|update|status]')
 		break;			
 }
 
