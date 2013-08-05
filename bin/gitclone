@@ -52,6 +52,9 @@ switch (action) {
 	case "update":
 		new GitClone(username, dir).update();
 		break;	
+	case "status":
+		new GitClone(username, dir).status();
+		break;			
 	default:
 		exit('You must use a valid action [clone|update]')
 		break;			
