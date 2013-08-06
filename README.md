@@ -47,5 +47,5 @@ Install to `/usr/local/lib/node_modules/gitclone`
 
 Or use script
 
-	(sudo) sh install.sh
+	(sudo) ./install.sh
 	
