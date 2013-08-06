@@ -44,4 +44,8 @@ If the `username` and `dir` are set in `$HOME/.gitclone/config.json`, these comm
 Install to `/usr/local/lib/node_modules/gitclone`
 
 	sudo npm install . -g
+
+Or use script
+
+	(sudo) sh install.sh
 	
