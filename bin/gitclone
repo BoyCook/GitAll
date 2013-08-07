@@ -5,6 +5,9 @@
 var fs = require('fs');
 var GitClone = require('../lib/gitclone');
 var confFile = process.env['HOME'] + '/.gitclone/config.json';
+var args = process.argv.splice(2);
+var action = args[0];
+var config = [];
 
 function exit(msg) {
 	console.log(msg);
@@ -12,51 +15,58 @@ function exit(msg) {
 	process.exit(1);	
 }
 
-function readFile(name) {
-	return JSON.parse(fs.readFileSync(name, 'utf8'));
-}
-
-function check(key, value) {
-	if (typeof value === "undefined") {
-		exit('You must specify [' + key +']');
+if (args.length == 1) {
+	console.log('Using config file');
+	if (fs.existsSync(confFile)) {
+		config = JSON.parse(fs.readFileSync(confFile, 'utf8'));
 	}
+} else if (args.length = 2) {
+	config.push({
+	   "username": args[1],
+	   "dir": ".",
+	   "protocol": "ssh"
+	});
+} else if (args.length = 3) {
+	config.push({
+	   "username": args[1],
+	   "dir": args[2],
+	   "protocol": "ssh"
+	});
+} else if (args.length = 4) {	
+	config.push({
+	   "username": args[1],
+	   "dir": args[2],
+	   "protocol": args[3]
+	});
+} else {
+	exit('Invalid arguments');
 }
-
-var args = process.argv.splice(2);
-var action = args[0];
-var username = undefined;
-var dir = undefined;
-
-if (fs.existsSync(confFile)) {
-	var conf = readFile(confFile);
-	username = conf.username;
-	dir = conf.dir;
-}
-
-if (typeof args[1] !== "undefined") {
-	username = args[1];	
-}
-
-if (typeof args[2] !== "undefined") {
-	dir = args[2];
-}
-
-check('action', action);
-check('username', username);
-check('dir', dir);
 
 switch (action) {
 	case "clone":
-		new GitClone(username, dir).clone();
+		for (var i=0,len=config.length; i<len; i++) {
+			var item = config[i];
+			// new GitClone(item.username, item.dir, item.protocol).clone();
+		}
 		break;
 	case "update":
-		new GitClone(username, dir).update();
+		for (var i=0,len=config.length; i<len; i++) {
+			var item = config[i];
+			// new GitClone(item.username, item.dir, item.protocol).update();
+		}	
 		break;	
 	case "status":
-		new GitClone(username, dir).status();
+		for (var i=0,len=config.length; i<len; i++) {
+			var item = config[i];
+			// new GitClone(item.username, item.dir, item.protocol).status();
+		}	
 		break;			
 	case "config":
-		new GitClone(username, dir).config();
+		if (fs.existsSync(confFile)) {
+			console.log('Config at [%s] is %s', confFile, fs.readFileSync(confFile, 'utf8').trim());
+		} else {
+			console.log('No config file found at [%s]', confFile);
+		}
 		break;
 	default:
 		exit('You must use a valid action [clone|update|status|config]')
