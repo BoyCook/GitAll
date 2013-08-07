@@ -8,6 +8,13 @@ This is tool for cloning and updating all the GitHub repositories of a user or o
 * `{action}` either `clone`, `update` or `status`
 * `{dir}` this is the target dir, defaults to current dir '.'
 
+## Actions
+
+* `clone` - clones all repositories
+* `update` - updates all repositories
+* `status` - gives status for all repositories
+* `config` - gives the config
+
 ## config.json
 
 You can set some paramaters in the file `$HOME/.gitclone/config.json` to save using them on the command line. The tool will try and read paramters from this file (if one exists), and will use those if none are passed in. Parameters that can be set are:
@@ -47,5 +54,5 @@ Install to `/usr/local/lib/node_modules/gitclone`
 
 Or use script
 
-	(sudo) ./install.sh
+	sudo ./install.sh
 	
