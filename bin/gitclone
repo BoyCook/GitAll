@@ -16,7 +16,6 @@ function exit(msg) {
 }
 
 if (args.length == 1) {
-	console.log('Using config file');
 	if (fs.existsSync(confFile)) {
 		config = JSON.parse(fs.readFileSync(confFile, 'utf8'));
 	}
@@ -46,19 +45,19 @@ switch (action) {
 	case "clone":
 		for (var i=0,len=config.length; i<len; i++) {
 			var item = config[i];
-			// new GitClone(item.username, item.dir, item.protocol).clone();
+			new GitClone(item.username, item.dir, item.protocol).clone();
 		}
 		break;
 	case "update":
 		for (var i=0,len=config.length; i<len; i++) {
 			var item = config[i];
-			// new GitClone(item.username, item.dir, item.protocol).update();
+			new GitClone(item.username, item.dir, item.protocol).update();
 		}	
 		break;	
 	case "status":
 		for (var i=0,len=config.length; i<len; i++) {
 			var item = config[i];
-			// new GitClone(item.username, item.dir, item.protocol).status();
+			new GitClone(item.username, item.dir, item.protocol).status();
 		}	
 		break;			
 	case "config":
