@@ -1,6 +1,6 @@
 ## About
 
-This is a tool GitAll to mange (clone, update etc) all the GitHub repositories for multipls user (or organization) accounts in one command. 
+This is a tool to mange (clone, update etc) all the GitHub repositories for multipls user (or organization) accounts in one command. 
 
 Do you work with multiple GitHub repositories over multiple user or organization accounts? Ever wanted to clone or update all your GitHub repositories with one command? This is the tool for you.
 
@@ -35,9 +35,9 @@ Example config is:
 
 ## How it works
 
-The tool tool works by either setting up config in the config file, or passing it parameters on the command line. 
+GitAll works by either setting up config in the config file, or passing it parameters on the command line. 
 Parameters passed in will take precidence over parameters found in the config file. 
-It's much better to setup the config in advance and let the tool do all the hard work.
+It's much better to setup the config in advance and let the GitAll do all the hard work.
 
 ## Usage 
 
