@@ -1,8 +1,8 @@
 ## About
 
-This is a tool to mange (clone, update etc) all the GitHub repositories for multiple user (or organization) accounts in one command. 
+This is a tool to mange (clone, update etc) all the GitHub repositories for multiple user (or organisation) accounts in one command. 
 
-Do you work with multiple GitHub repositories over multiple user or organization accounts? Ever wanted to clone or update all your GitHub repositories with one command? This is the tool for you.
+Do you work with multiple GitHub repositories over multiple user or organisation accounts? Ever wanted to clone or update all your GitHub repositories with one command? This is the tool for you.
 
 ## Params
 
