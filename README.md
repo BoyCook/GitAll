@@ -17,7 +17,7 @@ This is tool for cloning and updating all the GitHub repositories of a user or o
 
 ## config.json
 
-You can set some paramaters in the file `$HOME/.gitclone/config.json` to save using them on the command line. The tool will try and read paramters from this file (if one exists), and will use those if none are passed in. Parameters that can be set are:
+You can set some paramaters in the file `$HOME/.gitall/config.json` to save using them on the command line. The tool will try and read paramters from this file (if one exists), and will use those if none are passed in. Parameters that can be set are:
 
 	{
 	   "username": "{user}",
@@ -26,7 +26,7 @@ You can set some paramaters in the file `$HOME/.gitclone/config.json` to save us
 
 ## Usage 
 
-	gitclone {action} {user} {dir}
+	gitall {action} {user} {dir}
 
 The final two are optional
 
@@ -34,21 +34,21 @@ The final two are optional
 
 Clone all the repositories for the user `BoyCook` (https://github.com/BoyCook) into the directory `boycook`:
 
-	gitclone clone BoyCook /Users/boycook/code/boycook
+	gitall clone BoyCook /Users/boycook/code/boycook
 
 Update all the repositories for the user `BoyCook` (https://github.com/BoyCook) which exist in directory `boycook`:
 
-	gitclone update BoyCook /Users/boycook/code/boycook
+	gitall update BoyCook /Users/boycook/code/boycook
 
-If the `username` and `dir` are set in `$HOME/.gitclone/config.json`, these commands become:
+If the `username` and `dir` are set in `$HOME/.gitall/config.json`, these commands become:
 
-	gitclone clone
-	gitclone update
-	gitclone status
+	gitall clone
+	gitall update
+	gitall status
 
 # Install from source
 
-Install to `/usr/local/lib/node_modules/gitclone`
+Install to `/usr/local/lib/node_modules/gitall`
 
 	sudo npm install . -g
 

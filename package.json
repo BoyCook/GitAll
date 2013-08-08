@@ -1,5 +1,5 @@
 {
-    "name": "gitclone",
+    "name": "gitall",
     "version": "0.0.1-RC01",
     "author": "BoyCook",
     "description": "Tool for cloning all repositories of a user or organization",
@@ -10,23 +10,23 @@
         }
     ],
     "scripts": {
-        "start": "node gitclone.js",
+        "start": "node gitall.js",
         "test": "make test",
         "predeploy": "echo This will be run before deploying the app",
         "postdeploy": "echo This will be run after deploying the app"
     },
-    "main": "lib/gitclone",
+    "main": "lib/gitall",
     "bin": {
-        "gitclone": "bin/gitclone"
+        "gitall": "bin/gitall"
     },    
     "repository": {
         "type": "git",
-        "url": "https://github.com/BoyCook/GitClone.git"
+        "url": "https://github.com/BoyCook/GitAll.git"
     },
     "keywords": [
         "Git",
         "Clone",
-        "GitClone"
+        "gitall"
     ],
     "dependencies": {
         "request": "*"

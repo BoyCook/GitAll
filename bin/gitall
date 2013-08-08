@@ -3,15 +3,15 @@
 'use strict';
 
 var fs = require('fs');
-var GitClone = require('../lib/gitclone');
-var confFile = process.env['HOME'] + '/.gitclone/config.json';
+var GitAll = require('../lib/gitall');
+var confFile = process.env['HOME'] + '/.gitall/config.json';
 var args = process.argv.splice(2);
 var action = args[0];
 var config = [];
 
 function exit(msg) {
 	console.log(msg);
-	console.log('Usage: gitclone {action} {username} {dir}');
+	console.log('Usage: gitall {action} {username} {dir}');
 	process.exit(1);	
 }
 
@@ -45,19 +45,19 @@ switch (action) {
 	case "clone":
 		for (var i=0,len=config.length; i<len; i++) {
 			var item = config[i];
-			new GitClone(item.username, item.dir, item.protocol).clone();
+			new GitAll(item.username, item.dir, item.protocol).clone();
 		}
 		break;
 	case "update":
 		for (var i=0,len=config.length; i<len; i++) {
 			var item = config[i];
-			new GitClone(item.username, item.dir, item.protocol).update();
+			new GitAll(item.username, item.dir, item.protocol).update();
 		}	
 		break;	
 	case "status":
 		for (var i=0,len=config.length; i<len; i++) {
 			var item = config[i];
-			new GitClone(item.username, item.dir, item.protocol).status();
+			new GitAll(item.username, item.dir, item.protocol).status();
 		}	
 		break;			
 	case "config":

@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-PACKAGE_DIR=/usr/local/lib/node_modules/gitclone
+PACKAGE_DIR=/usr/local/lib/node_modules/gitall
 
 if [ -d $PACKAGE_DIR ]
 then
