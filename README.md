@@ -70,3 +70,7 @@ Or use script
 
 	sudo ./install.sh
 	
+## Prerequisites
+
+GitAll is a node.js app so http://nodejs.org will be required.
+	
