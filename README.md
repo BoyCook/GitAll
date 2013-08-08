@@ -1,50 +1,64 @@
 ## About
 
-This is tool for cloning and updating all the GitHub repositories of a user or organization in one hit.
+This is a tool GitAll to mange (clone, update etc) all the GitHub repositories for multipls user (or organization) accounts in one command. 
+
+Do you work with multiple GitHub repositories over multiple user or organization accounts? Ever wanted to clone or update all your GitHub repositories with one command? This is the tool for you.
 
 ## Params
 
-* `{user}` is the account name. This is case sensitive
 * `{action}` either `clone`, `update` or `status`
+* `{user}` is the account name. This is case sensitive
 * `{dir}` this is the target dir, defaults to current dir '.'
+* `{protocol}` [ssh|https|svn] this is the protocol to be used to fetch the repo, defaults to 'ssh' 
 
 ## Actions
 
 * `clone` - clones all repositories
 * `update` - updates all repositories
 * `status` - gives status for all repositories
-* `config` - gives the config
+* `config` - gives the config in `$HOME/.gitall/config.json`
 
 ## config.json
 
-You can set some paramaters in the file `$HOME/.gitall/config.json` to save using them on the command line. The tool will try and read paramters from this file (if one exists), and will use those if none are passed in. Parameters that can be set are:
+You setup the config for the accounts that you want to manage in a config file `$HOME/.gitall/config.json`.
+Example config is:
 
-	{
-	   "username": "{user}",
-	   "dir": "{dir}"
-	}
+	[{
+	   "username": "BoyCook",
+	   "dir": "/Users/boycook/code/boycook",
+	   "protocol": "ssh"
+	},{
+	   "username": "TiddlySpace",
+	   "dir": "/Users/boycook/code/osmosoft/tiddlyspace",
+	   "protocol": "ssh"
+	}]
+
+## How it works
+
+The tool tool works by either setting up config in the config file, or passing it parameters on the command line. 
+Parameters passed in will take precidence over parameters found in the config file. 
+It's much better to setup the config in advance and let the tool do all the hard work.
 
 ## Usage 
 
-	gitall {action} {user} {dir}
+	gitall {action} {user} {dir} {protocol}
 
-The final two are optional
+The final three are optional
 
-## Example
-
-Clone all the repositories for the user `BoyCook` (https://github.com/BoyCook) into the directory `boycook`:
-
-	gitall clone BoyCook /Users/boycook/code/boycook
-
-Update all the repositories for the user `BoyCook` (https://github.com/BoyCook) which exist in directory `boycook`:
-
-	gitall update BoyCook /Users/boycook/code/boycook
-
-If the `username` and `dir` are set in `$HOME/.gitall/config.json`, these commands become:
+## Example usage with config file
 
 	gitall clone
 	gitall update
 	gitall status
+
+These will perform the action specified on each account setup in the config file.
+
+## Example usage passing in parameters
+
+	gitall clone BoyCook /Users/boycook/code/boycook ssh
+
+This will clone all the repositories for the user `BoyCook` (https://github.com/BoyCook) into the directory `boycook` using 
+the `ssh` protocol.
 
 # Install from source
 
