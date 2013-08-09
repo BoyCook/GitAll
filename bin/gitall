@@ -48,10 +48,10 @@ switch (action) {
 			new GitAll(item.username, item.dir, item.protocol).clone();
 		}
 		break;
-	case "update":
+	case "pull":
 		for (var i=0,len=config.length; i<len; i++) {
 			var item = config[i];
-			new GitAll(item.username, item.dir, item.protocol).update();
+			new GitAll(item.username, item.dir, item.protocol).pull();
 		}	
 		break;	
 	case "status":
@@ -68,7 +68,7 @@ switch (action) {
 		}
 		break;
 	default:
-		exit('You must use a valid action [clone|update|status|config]')
+		exit('You must use a valid action [clone|pull|status|config]')
 		break;			
 }
 

@@ -1,12 +1,12 @@
 ## About
 
-This is a tool to mange (clone, update etc) all the GitHub repositories for multiple user (or organisation) accounts in one command. 
+This is a tool to mange (clone, pull etc) all the GitHub repositories for multiple user (or organisation) accounts in one command. 
 
 Do you work with multiple GitHub repositories over multiple user or organisation accounts? Ever wanted to clone or update all your GitHub repositories with one command? This is the tool for you.
 
 ## Params
 
-* `{action}` either `clone`, `update` or `status`
+* `{action}` either [clone|pull|status|config]
 * `{user}` is the account name. This is case sensitive
 * `{dir}` this is the target dir, defaults to current dir '.'
 * `{protocol}` [ssh|https|svn] this is the protocol to be used to fetch the repo, defaults to 'ssh' 
@@ -14,7 +14,7 @@ Do you work with multiple GitHub repositories over multiple user or organisation
 ## Actions
 
 * `clone` - clones all repositories
-* `update` - updates all repositories
+* `pull` - updates all repositories
 * `status` - gives status for all repositories
 * `config` - gives the config in `$HOME/.gitall/config.json`
 
@@ -48,7 +48,7 @@ The final three are optional
 ## Example usage with config file
 
 	gitall clone
-	gitall update
+	gitall pull
 	gitall status
 
 These will perform the action specified on each account setup in the config file.
