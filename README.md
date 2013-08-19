@@ -72,5 +72,6 @@ Or use script
 	
 ## Prerequisites
 
-GitAll is a node.js app so http://nodejs.org will be required.
+* GitAll is a node.js app so http://nodejs.org will be required.
+* You may want to increase the number of file descriptors allowed `ulimit -n 10000`
 	
