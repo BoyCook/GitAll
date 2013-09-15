@@ -1,3 +1,8 @@
+[![Build Status](https://travis-ci.org/BoyCook/GitAll.png?branch=master)](https://travis-ci.org/BoyCook/GitAll)
+[![Coverage Status](https://coveralls.io/repos/BoyCook/GitAll/badge.png)](https://coveralls.io/r/BoyCook/GitAll)
+[![Dependency Status](https://gemnasium.com/BoyCook/GitAll.png)](https://gemnasium.com/BoyCook/GitAll)
+[![NPM](https://nodei.co/npm/GitAll.png?downloads=true)](https://nodei.co/npm/GitAll) 
+
 ## About
 
 This is a tool to mange (clone, pull etc) all the GitHub repositories for multiple user (or organisation) accounts in one command. 
