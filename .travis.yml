@@ -5,5 +5,5 @@ node_js:
   - "0.8"
   - "0.6"
 
-install: npm install
+install: "npm install -g mocha"
 script: make test
