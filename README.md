@@ -1,8 +1,18 @@
+[![Build Status](https://travis-ci.org/BoyCook/GitAll.png?branch=master)](https://travis-ci.org/BoyCook/GitAll)
+[![Coverage Status](https://coveralls.io/repos/BoyCook/GitAll/badge.png)](https://coveralls.io/r/BoyCook/GitAll)
+[![Dependency Status](https://gemnasium.com/BoyCook/GitAll.png)](https://gemnasium.com/BoyCook/GitAll)
+
+[![NPM](https://nodei.co/npm/gitall.png?downloads=true)](https://nodei.co/npm/gitall) 
+
 ## About
 
 This is a tool to mange (clone, pull etc) all the GitHub repositories for multiple user (or organisation) accounts in one command. 
 
 Do you work with multiple GitHub repositories over multiple user or organisation accounts? Ever wanted to clone or update all your GitHub repositories with one command? This is the tool for you.
+
+## Installation
+
+	(sudo) npm install -g
 
 ## Params
 
