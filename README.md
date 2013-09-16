@@ -10,6 +10,10 @@ This is a tool to mange (clone, pull etc) all the GitHub repositories for multip
 
 Do you work with multiple GitHub repositories over multiple user or organisation accounts? Ever wanted to clone or update all your GitHub repositories with one command? This is the tool for you.
 
+## Installation
+
+	(sudo) npm install -g
+
 ## Params
 
 * `{action}` either [clone|pull|status|config]
