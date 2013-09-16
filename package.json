@@ -3,6 +3,7 @@
     "version": "0.0.1-RC01",
     "author": "BoyCook",
     "description": "Tool for cloning all repositories of a user or organization",
+    "preferGlobal": "true",
     "contributors": [
         {
             "name": "Craig Cook",
