@@ -12,8 +12,6 @@ test-mocha:
 		--reporter $(REPORTER) \
 		$(TESTS)
 
-test-travis: istanbul coveralls clean
-
 test-cov: istanbul
 
 istanbul:
