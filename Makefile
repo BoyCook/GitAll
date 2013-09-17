@@ -6,29 +6,21 @@ HTML_FILE = reports/coverage.html
 
 test: test-mocha
 
-test-ci:
-	$(MAKE) test-mocha REPORTER=xUnit > $(XML_FILE)
-
-test-all: clean test-ci test-cov
-
-test-ui: start
-	casperjs test test/ui
-
 test-mocha:
 	@NODE_ENV=test mocha \
 	    --timeout 200 \
 		--reporter $(REPORTER) \
 		$(TESTS)
 
-test-cov: lib-cov
-	@HFS_COV=1 $(MAKE) test-mocha REPORTER=html-cov > $(HTML_FILE)
+test-travis: istanbul coveralls clean
 
-lib-cov: setup
-	jscoverage lib lib-cov
+test-cov: istanbul clean
 
-setup:
-	mkdir -p reports
+istanbul:
+	istanbul cover _mocha -- -R spec test/spec
+
+coveralls:
+	cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
 
 clean:
-	rm -f reports/*
-	rm -fr lib-cov
+	rm -rf ./coverage

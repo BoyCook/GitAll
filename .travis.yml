@@ -3,6 +3,5 @@ node_js:
   - "0.11"
   - "0.10"
   - "0.8"
-
-install: "npm install -g mocha"
-script: make test
+before_script: 'npm install -g istanbul && npm install -g mocha'
+script: 'make test-travis'

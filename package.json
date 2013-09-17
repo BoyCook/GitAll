@@ -31,7 +31,8 @@
         "request": "*"
     },
     "devDependencies": {
-        "should": "latest"
+        "should": "latest",
+        "coveralls": "2.3.0"
     },    
     "engines": {
         "node": ">=0.6"
