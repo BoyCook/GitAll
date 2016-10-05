@@ -12,7 +12,19 @@ Do you work with multiple GitHub repositories over multiple user or organisation
 
 ## Installation
 
-	(sudo) npm install -g
+	(sudo) npm install -g gitall
+
+## How it works
+
+GitAll works by either setting up config in the config file, or passing it parameters on the command line. 
+Parameters passed in will take precidence over parameters found in the config file. 
+It's much better to setup the config in advance and let the GitAll do all the hard work.
+
+## Usage 
+
+	gitall {action} {user} {dir} {protocol}
+
+The final three are optional
 
 ## Params
 
@@ -43,18 +55,6 @@ Example config is:
 	   "protocol": "ssh"
 	}]
 
-## How it works
-
-GitAll works by either setting up config in the config file, or passing it parameters on the command line. 
-Parameters passed in will take precidence over parameters found in the config file. 
-It's much better to setup the config in advance and let the GitAll do all the hard work.
-
-## Usage 
-
-	gitall {action} {user} {dir} {protocol}
-
-The final three are optional
-
 ## Example usage with config file
 
 	gitall clone
@@ -84,4 +84,3 @@ Or use script
 
 * GitAll is a node.js app so http://nodejs.org will be required.
 * You may want to increase the number of file descriptors allowed `ulimit -n 10000`
-	
