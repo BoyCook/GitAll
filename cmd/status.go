@@ -94,7 +94,7 @@ func resolveStatusDirs(user, dir string) ([]string, error) {
 
 	cfg, err := config.Load(config.DefaultPath())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("no --dir flag and no config found.\nRun 'gitall config init' to create one, or use --dir to specify a directory")
 	}
 
 	active := cfg.ActiveAccounts()
