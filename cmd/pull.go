@@ -41,14 +41,27 @@ func init() {
 }
 
 func runPull(cmd *cobra.Command, args []string) error {
-	dirs, err := resolveStatusDirs(pullUser, pullDir)
+	opts := git.PullOptions{
+		Stash:  pullStash,
+		Rebase: pullRebase,
+	}
+
+	repoPaths, err := resolveRepoPaths(pullUser, pullDir)
 	if err != nil {
 		return err
 	}
 
-	opts := git.PullOptions{
-		Stash:  pullStash,
-		Rebase: pullRebase,
+	if repoPaths != nil {
+		repos := filterOwnedRepos(repoPaths)
+		output.Infof(quiet, "Pulling %d repos...", len(repos))
+		results := pullRepos(repos, opts)
+		output.PrintSummary(results, "Pull", jsonOut)
+		return nil
+	}
+
+	dirs, err := resolveDirs(pullUser, pullDir)
+	if err != nil {
+		return err
 	}
 
 	var allResults []git.RepoResult
@@ -64,26 +77,29 @@ func runPull(cmd *cobra.Command, args []string) error {
 
 		output.Infof(quiet, "Pulling %d repos in %s...", len(repos), dir)
 
-		tasks := make([]runner.Task, len(repos))
-		for i, repoPath := range repos {
-			rp := repoPath
-			tasks[i] = runner.Task{
-				Name: git.RepoNameFromPath(rp),
-				Execute: func() git.RepoResult {
-					return git.Pull(rp, opts)
-				},
-			}
-		}
-
-		results := runner.RunWithProgress(tasks, pullConcurrency, func(completed, total int, result git.RepoResult) {
-			output.Progress(completed, total, result, quiet)
-		})
-
+		results := pullRepos(repos, opts)
 		allResults = append(allResults, results...)
 	}
 
 	output.PrintSummary(allResults, "Pull", jsonOut)
 	return nil
+}
+
+func pullRepos(repos []string, opts git.PullOptions) []git.RepoResult {
+	tasks := make([]runner.Task, len(repos))
+	for i, repoPath := range repos {
+		rp := repoPath
+		tasks[i] = runner.Task{
+			Name: git.RepoNameFromPath(rp),
+			Execute: func() git.RepoResult {
+				return git.Pull(rp, opts)
+			},
+		}
+	}
+
+	return runner.RunWithProgress(tasks, pullConcurrency, func(completed, total int, result git.RepoResult) {
+		output.Progress(completed, total, result, quiet)
+	})
 }
 
 func filterOwnedRepos(repos []string) []string {

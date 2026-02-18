@@ -99,26 +99,47 @@ func runConfigList(cmd *cobra.Command, args []string) error {
 
 	bold.Fprintf(os.Stdout, "Config: %s\n\n", path)
 
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "USERNAME\tDIR\tPROTOCOL\tACTIVE\tAPI URL")
-	fmt.Fprintln(w, "--------\t---\t--------\t------\t-------")
+	if len(cfg.Accounts) > 0 {
+		bold.Fprintln(os.Stdout, "Accounts:")
+		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		fmt.Fprintln(w, "USERNAME\tDIR\tPROTOCOL\tACTIVE\tAPI URL")
+		fmt.Fprintln(w, "--------\t---\t--------\t------\t-------")
 
-	for _, acct := range cfg.Accounts {
-		activeStr := green.Sprint("yes")
-		if !acct.IsActive() {
-			activeStr = red.Sprint("no")
+		for _, acct := range cfg.Accounts {
+			activeStr := green.Sprint("yes")
+			if !acct.IsActive() {
+				activeStr = red.Sprint("no")
+			}
+
+			apiURL := "github.com"
+			if acct.APIURL != "" {
+				apiURL = acct.APIURL
+			}
+
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n",
+				acct.Username, acct.Dir, acct.Protocol, activeStr, apiURL)
 		}
 
-		apiURL := "github.com"
-		if acct.APIURL != "" {
-			apiURL = acct.APIURL
-		}
-
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n",
-			acct.Username, acct.Dir, acct.Protocol, activeStr, apiURL)
+		w.Flush()
 	}
 
-	w.Flush()
+	if len(cfg.Repos) > 0 {
+		if len(cfg.Accounts) > 0 {
+			fmt.Fprintln(os.Stdout)
+		}
+		bold.Fprintln(os.Stdout, "Repos:")
+		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		fmt.Fprintln(w, "NAME\tOWNER\tDIR\tPROTOCOL")
+		fmt.Fprintln(w, "----\t-----\t---\t--------")
+
+		for _, repo := range cfg.Repos {
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\n",
+				repo.Name, repo.Owner, repo.Dir, repo.Protocol)
+		}
+
+		w.Flush()
+	}
+
 	return nil
 }
 
@@ -168,12 +189,12 @@ func runConfigAdd(cmd *cobra.Command, args []string) error {
 }
 
 func runConfigDiscover(cmd *cobra.Command, args []string) error {
-	repos, err := git.DiscoverReposRecursive(discoverDir)
+	discoveredPaths, err := git.DiscoverReposRecursive(discoverDir)
 	if err != nil {
 		return err
 	}
 
-	if len(repos) == 0 {
+	if len(discoveredPaths) == 0 {
 		fmt.Println("No git repositories found.")
 		return nil
 	}
@@ -184,19 +205,30 @@ func runConfigDiscover(cmd *cobra.Command, args []string) error {
 	}
 
 	owners := make(map[string]*ownerInfo)
+	var repos []config.Repo
 
-	for _, repoPath := range repos {
+	for _, repoPath := range discoveredPaths {
 		owner := git.RemoteOwner(repoPath)
 		if owner == "" {
 			continue
 		}
 
-		parentDir := filepath.Dir(repoPath)
+		protocol := git.RemoteProtocol(repoPath)
+		name := git.RepoNameFromPath(repoPath)
 		lowerOwner := strings.ToLower(owner)
+
+		repos = append(repos, config.Repo{
+			Name:     name,
+			Owner:    lowerOwner,
+			Dir:      repoPath,
+			Protocol: protocol,
+		})
+
+		parentDir := filepath.Dir(repoPath)
 
 		if _, ok := owners[lowerOwner]; !ok {
 			owners[lowerOwner] = &ownerInfo{
-				protocol: git.RemoteProtocol(repoPath),
+				protocol: protocol,
 				dirs:     map[string]bool{parentDir: true},
 			}
 		} else {
@@ -204,7 +236,7 @@ func runConfigDiscover(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if len(owners) == 0 {
+	if len(repos) == 0 {
 		fmt.Println("No repos with GitHub remotes found.")
 		return nil
 	}
@@ -223,10 +255,10 @@ func runConfigDiscover(cmd *cobra.Command, args []string) error {
 	bold := color.New(color.Bold)
 	green := color.New(color.FgGreen)
 
-	bold.Printf("Discovered %d account(s) from %d repo(s):\n\n", len(accounts), len(repos))
-	for _, acct := range accounts {
-		green.Printf("  %s", acct.Username)
-		fmt.Printf("  %s  (%s)\n", acct.Dir, acct.Protocol)
+	bold.Printf("Discovered %d repo(s):\n\n", len(repos))
+	for _, repo := range repos {
+		green.Printf("  %s", repo.Name)
+		fmt.Printf("  %s/%s  (%s)\n", repo.Owner, repo.Name, repo.Protocol)
 	}
 
 	if discoverDryRun {
@@ -240,15 +272,22 @@ func runConfigDiscover(cmd *cobra.Command, args []string) error {
 		cfg = &config.Config{}
 	}
 
-	added := 0
+	addedAccounts := 0
 	for _, acct := range accounts {
 		if err := cfg.AddAccount(acct); err == nil {
-			added++
+			addedAccounts++
 		}
 	}
 
-	if added == 0 {
-		fmt.Println("\nAll discovered accounts already exist in config.")
+	addedRepos := 0
+	for _, repo := range repos {
+		if err := cfg.AddRepo(repo); err == nil {
+			addedRepos++
+		}
+	}
+
+	if addedAccounts == 0 && addedRepos == 0 {
+		fmt.Println("\nAll discovered entries already exist in config.")
 		return nil
 	}
 
@@ -256,7 +295,7 @@ func runConfigDiscover(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("\nAdded %d account(s) to %s\n", added, path)
+	fmt.Printf("\nAdded %d account(s) and %d repo(s) to %s\n", addedAccounts, addedRepos, path)
 	return nil
 }
 
@@ -273,11 +312,11 @@ func runConfigRemove(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if len(cfg.Accounts) == 0 {
+	if len(cfg.Accounts) == 0 && len(cfg.Repos) == 0 {
 		if err := os.Remove(path); err != nil {
 			return fmt.Errorf("removing empty config: %w", err)
 		}
-		fmt.Printf("Removed account %q — config file deleted (no accounts remaining)\n", username)
+		fmt.Printf("Removed account %q — config file deleted (no entries remaining)\n", username)
 		return nil
 	}
 

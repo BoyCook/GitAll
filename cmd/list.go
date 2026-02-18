@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"fmt"
 	"sync"
 
-	"github.com/boycook/gitall/internal/config"
 	"github.com/boycook/gitall/internal/git"
 	"github.com/boycook/gitall/internal/output"
 	"github.com/spf13/cobra"
@@ -20,6 +18,7 @@ This is a local-only operation — no network calls are made.`,
 }
 
 var (
+	listUser        string
 	listDir         string
 	listConcurrency int
 )
@@ -27,12 +26,27 @@ var (
 func init() {
 	rootCmd.AddCommand(listCmd)
 
+	listCmd.Flags().StringVar(&listUser, "user", "", "only list repos for this user")
 	listCmd.Flags().StringVar(&listDir, "dir", "", "directory to scan (overrides config)")
 	listCmd.Flags().IntVarP(&listConcurrency, "concurrency", "j", 8, "number of concurrent checks")
 }
 
 func runList(cmd *cobra.Command, args []string) error {
-	dirs, err := resolveListDirs(listDir)
+	repoPaths, err := resolveRepoPaths(listUser, listDir)
+	if err != nil {
+		return err
+	}
+
+	if repoPaths != nil {
+		statuses := listReposConcurrently(repoPaths, listConcurrency)
+		for _, s := range statuses {
+			output.PrintRepoList(s)
+		}
+		output.PrintStatusSummary(statuses, jsonOut)
+		return nil
+	}
+
+	dirs, err := resolveDirs(listUser, listDir)
 	if err != nil {
 		return err
 	}
@@ -81,21 +95,3 @@ func listReposConcurrently(repos []string, concurrency int) []git.RepoStatus {
 	return results
 }
 
-func resolveListDirs(dir string) ([]string, error) {
-	if dir != "" {
-		return []string{dir}, nil
-	}
-
-	cfg, err := config.Load(config.DefaultPath())
-	if err != nil {
-		return nil, fmt.Errorf("no --dir flag and no config found.\nRun 'gitall config init' to create one, or use --dir to specify a directory")
-	}
-
-	active := cfg.ActiveAccounts()
-	dirs := make([]string, len(active))
-	for i, acct := range active {
-		dirs[i] = acct.Dir
-	}
-
-	return dirs, nil
-}

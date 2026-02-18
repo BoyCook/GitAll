@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"fmt"
 	"sync"
 
-	"github.com/boycook/gitall/internal/config"
 	"github.com/boycook/gitall/internal/git"
 	"github.com/boycook/gitall/internal/output"
 	"github.com/spf13/cobra"
@@ -36,7 +34,22 @@ func init() {
 }
 
 func runStatus(cmd *cobra.Command, args []string) error {
-	dirs, err := resolveStatusDirs(statusUser, statusDir)
+	repoPaths, err := resolveRepoPaths(statusUser, statusDir)
+	if err != nil {
+		return err
+	}
+
+	if repoPaths != nil {
+		output.Infof(quiet, "Checking %d repos...", len(repoPaths))
+		statuses := statusReposConcurrently(repoPaths, statusConcurrency)
+		for _, s := range statuses {
+			output.PrintRepoStatus(s, statusAll || verbose)
+		}
+		output.PrintStatusSummary(statuses, jsonOut)
+		return nil
+	}
+
+	dirs, err := resolveDirs(statusUser, statusDir)
 	if err != nil {
 		return err
 	}
@@ -87,29 +100,3 @@ func statusReposConcurrently(repos []string, concurrency int) []git.RepoStatus {
 	return results
 }
 
-func resolveStatusDirs(user, dir string) ([]string, error) {
-	if dir != "" {
-		return []string{dir}, nil
-	}
-
-	cfg, err := config.Load(config.DefaultPath())
-	if err != nil {
-		return nil, fmt.Errorf("no --dir flag and no config found.\nRun 'gitall config init' to create one, or use --dir to specify a directory")
-	}
-
-	active := cfg.ActiveAccounts()
-	var dirs []string
-
-	for _, acct := range active {
-		if user != "" && acct.Username != user {
-			continue
-		}
-		dirs = append(dirs, acct.Dir)
-	}
-
-	if len(dirs) == 0 {
-		return nil, fmt.Errorf("no matching directories found")
-	}
-
-	return dirs, nil
-}

@@ -31,7 +31,19 @@ func init() {
 }
 
 func runFetch(cmd *cobra.Command, args []string) error {
-	dirs, err := resolveStatusDirs(fetchUser, fetchDir)
+	repoPaths, err := resolveRepoPaths(fetchUser, fetchDir)
+	if err != nil {
+		return err
+	}
+
+	if repoPaths != nil {
+		output.Infof(quiet, "Fetching %d repos...", len(repoPaths))
+		results := fetchRepos(repoPaths)
+		output.PrintSummary(results, "Fetch", jsonOut)
+		return nil
+	}
+
+	dirs, err := resolveDirs(fetchUser, fetchDir)
 	if err != nil {
 		return err
 	}
@@ -47,24 +59,27 @@ func runFetch(cmd *cobra.Command, args []string) error {
 
 		output.Infof(quiet, "Fetching %d repos in %s...", len(repos), dir)
 
-		tasks := make([]runner.Task, len(repos))
-		for i, repoPath := range repos {
-			rp := repoPath
-			tasks[i] = runner.Task{
-				Name: git.RepoNameFromPath(rp),
-				Execute: func() git.RepoResult {
-					return git.Fetch(rp)
-				},
-			}
-		}
-
-		results := runner.RunWithProgress(tasks, fetchConcurrency, func(completed, total int, result git.RepoResult) {
-			output.Progress(completed, total, result, quiet)
-		})
-
+		results := fetchRepos(repos)
 		allResults = append(allResults, results...)
 	}
 
 	output.PrintSummary(allResults, "Fetch", jsonOut)
 	return nil
+}
+
+func fetchRepos(repos []string) []git.RepoResult {
+	tasks := make([]runner.Task, len(repos))
+	for i, repoPath := range repos {
+		rp := repoPath
+		tasks[i] = runner.Task{
+			Name: git.RepoNameFromPath(rp),
+			Execute: func() git.RepoResult {
+				return git.Fetch(rp)
+			},
+		}
+	}
+
+	return runner.RunWithProgress(tasks, fetchConcurrency, func(completed, total int, result git.RepoResult) {
+		output.Progress(completed, total, result, quiet)
+	})
 }

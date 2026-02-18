@@ -15,7 +15,15 @@ var validProtocols = map[string]bool{
 }
 
 type Config struct {
-	Accounts []Account `yaml:"accounts"`
+	Accounts []Account `yaml:"accounts,omitempty"`
+	Repos    []Repo    `yaml:"repos,omitempty"`
+}
+
+type Repo struct {
+	Name     string `yaml:"name"`
+	Owner    string `yaml:"owner"`
+	Dir      string `yaml:"dir"`
+	Protocol string `yaml:"protocol"`
 }
 
 type Account struct {
@@ -59,6 +67,14 @@ func Load(path string) (*Config, error) {
 		}
 	}
 
+	for i := range cfg.Repos {
+		cfg.Repos[i].Dir = expandPath(cfg.Repos[i].Dir)
+
+		if cfg.Repos[i].Protocol == "" {
+			cfg.Repos[i].Protocol = "ssh"
+		}
+	}
+
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
@@ -67,8 +83,8 @@ func Load(path string) (*Config, error) {
 }
 
 func (c *Config) Validate() error {
-	if len(c.Accounts) == 0 {
-		return fmt.Errorf("config must contain at least one account")
+	if len(c.Accounts) == 0 && len(c.Repos) == 0 {
+		return fmt.Errorf("config must contain at least one account or repo")
 	}
 
 	for i, acct := range c.Accounts {
@@ -80,6 +96,18 @@ func (c *Config) Validate() error {
 		}
 		if !validProtocols[acct.Protocol] {
 			return fmt.Errorf("account %d (%s): invalid protocol %q (must be ssh or https)", i+1, acct.Username, acct.Protocol)
+		}
+	}
+
+	for i, repo := range c.Repos {
+		if repo.Name == "" {
+			return fmt.Errorf("repo %d: name is required", i+1)
+		}
+		if repo.Dir == "" {
+			return fmt.Errorf("repo %d (%s): dir is required", i+1, repo.Name)
+		}
+		if !validProtocols[repo.Protocol] {
+			return fmt.Errorf("repo %d (%s): invalid protocol %q (must be ssh or https)", i+1, repo.Name, repo.Protocol)
 		}
 	}
 
@@ -103,6 +131,28 @@ func (c *Config) AddAccount(acct Account) error {
 		}
 	}
 	c.Accounts = append(c.Accounts, acct)
+	return nil
+}
+
+func (c *Config) HasRepos() bool {
+	return len(c.Repos) > 0
+}
+
+func (c *Config) RepoDirs() []string {
+	dirs := make([]string, len(c.Repos))
+	for i, repo := range c.Repos {
+		dirs[i] = repo.Dir
+	}
+	return dirs
+}
+
+func (c *Config) AddRepo(repo Repo) error {
+	for _, existing := range c.Repos {
+		if existing.Dir == repo.Dir {
+			return fmt.Errorf("repo at %q already exists", repo.Dir)
+		}
+	}
+	c.Repos = append(c.Repos, repo)
 	return nil
 }
 
