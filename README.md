@@ -17,8 +17,10 @@ go install github.com/boycook/gitall@latest
 ```sh
 git clone https://github.com/BoyCook/GitAll.git
 cd GitAll
-go build -o gitall .
+make install
 ```
+
+This builds the binary, installs it to `~/go/bin`, and adds it to your `PATH` if needed.
 
 ## Quick start
 
