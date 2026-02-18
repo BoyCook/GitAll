@@ -1,87 +1,191 @@
-[![Build Status](https://travis-ci.org/BoyCook/GitAll.png?branch=master)](https://travis-ci.org/BoyCook/GitAll)
-[![Coverage Status](https://coveralls.io/repos/BoyCook/GitAll/badge.png)](https://coveralls.io/r/BoyCook/GitAll)
-[![Dependency Status](https://gemnasium.com/BoyCook/GitAll.png)](https://gemnasium.com/BoyCook/GitAll)
+# GitAll
 
-[![NPM](https://nodei.co/npm/gitall.png?downloads=true)](https://nodei.co/npm/gitall) 
+Manage all your GitHub repositories across multiple accounts with a single command.
 
-## About
-
-This is a tool to mange (clone, pull etc) all the GitHub repositories for multiple user (or organisation) accounts in one command. 
-
-Do you work with multiple GitHub repositories over multiple user or organisation accounts? Ever wanted to clone or update all your GitHub repositories with one command? This is the tool for you.
+Clone, pull, fetch, and check status for every repo under your GitHub users and organisations — concurrently.
 
 ## Installation
 
-	(sudo) npm install -g
+### From source
 
-## Params
+```sh
+go install github.com/boycook/gitall@latest
+```
 
-* `{action}` either [clone|pull|status|config]
-* `{user}` is the account name. This is case sensitive
-* `{dir}` this is the target dir, defaults to current dir '.'
-* `{protocol}` [ssh|https|svn] this is the protocol to be used to fetch the repo, defaults to 'ssh' 
+### Build locally
 
-## Actions
+```sh
+git clone https://github.com/BoyCook/GitAll.git
+cd GitAll
+go build -o gitall .
+```
 
-* `clone` - clones all repositories
-* `pull` - updates all repositories
-* `status` - gives status for all repositories
-* `config` - gives the config in `$HOME/.gitall/config.json`
+## Quick start
 
-## config.json
+```sh
+# Set up your config
+gitall config init
+# Edit ~/.gitall/config.yaml with your accounts, then:
 
-You setup the config for the accounts that you want to manage in a config file `$HOME/.gitall/config.json`.
-Example config is:
+# Clone all repos for all configured accounts
+gitall clone
 
-	[{
-	   "username": "BoyCook",
-	   "dir": "/Users/boycook/code/boycook",
-	   "protocol": "ssh"
-	},{
-	   "username": "TiddlySpace",
-	   "dir": "/Users/boycook/code/osmosoft/tiddlyspace",
-	   "protocol": "ssh"
-	}]
+# Check status across all repos
+gitall status
 
-## How it works
+# Pull latest changes (skips dirty repos)
+gitall pull
+```
 
-GitAll works by either setting up config in the config file, or passing it parameters on the command line. 
-Parameters passed in will take precidence over parameters found in the config file. 
-It's much better to setup the config in advance and let the GitAll do all the hard work.
+## Commands
 
-## Usage 
+### `gitall clone`
 
-	gitall {action} {user} {dir} {protocol}
+Clone all repositories for configured accounts from GitHub.
 
-The final three are optional
+```sh
+gitall clone                                  # all configured accounts
+gitall clone --user BoyCook --dir ~/code      # single account, ad-hoc
+gitall clone --no-forks --no-archived         # exclude forks and archived repos
+gitall clone --filter "api-*"                 # only repos matching pattern
+gitall clone --dry-run                        # show what would be cloned
+gitall clone -j 8                             # 8 concurrent clones
+```
 
-## Example usage with config file
+**Flags:**
+`--user`, `--dir`, `--protocol`, `--no-forks`, `--no-archived`, `--filter`, `--dry-run`, `-j`
 
-	gitall clone
-	gitall pull
-	gitall status
+### `gitall pull`
 
-These will perform the action specified on each account setup in the config file.
+Pull latest changes for all local repositories. Repos with uncommitted changes or unpushed commits are safely skipped.
 
-## Example usage passing in parameters
+```sh
+gitall pull                                   # all configured directories
+gitall pull --dir ~/code/myorg                # specific directory
+gitall pull --stash                           # auto-stash dirty repos
+gitall pull --rebase                          # use git pull --rebase
+gitall pull --owner BoyCook                   # only repos owned by this user
+```
 
-	gitall clone BoyCook /Users/boycook/code/boycook ssh
+**Flags:**
+`--user`, `--dir`, `--stash`, `--rebase`, `--owned-only`, `--owner`, `-j`
 
-This will clone all the repositories for the user `BoyCook` (https://github.com/BoyCook) into the directory `boycook` using 
-the `ssh` protocol.
+### `gitall fetch`
 
-# Install from source
+Fetch from all remotes without modifying your working tree. A safe way to check for updates.
 
-Install to `/usr/local/lib/node_modules/gitall`
+```sh
+gitall fetch                                  # all configured directories
+gitall fetch --dir ~/code/myorg               # specific directory
+```
 
-	sudo npm install . -g
+**Flags:**
+`--user`, `--dir`, `-j`
 
-Or use script
+### `gitall status`
 
-	sudo ./install.sh
-	
+Show git status for all repositories. Only dirty repos are shown by default.
+
+```sh
+gitall status                                 # dirty repos only
+gitall status --all                           # include clean repos
+gitall status --dir ~/code/myorg              # specific directory
+```
+
+**Flags:**
+`--user`, `--dir`, `--all`, `-j`
+
+### `gitall list`
+
+List all local repositories with branch, state, and remote URL. Local only — no network calls.
+
+```sh
+gitall list                                   # all configured directories
+gitall list --dir ~/code/myorg                # specific directory
+```
+
+**Flags:**
+`--dir`, `-j`
+
+### `gitall config`
+
+Manage the configuration file at `~/.gitall/config.yaml`.
+
+```sh
+gitall config init                            # create default config
+gitall config list                            # display current config
+gitall config add --username BoyCook --dir ~/code/boycook
+gitall config remove BoyCook
+```
+
+## Configuration
+
+Config file: `~/.gitall/config.yaml`
+
+```yaml
+accounts:
+  - username: BoyCook
+    dir: ~/code/boycook
+    protocol: ssh
+
+  - username: MyOrg
+    dir: ~/code/org
+    protocol: https
+    token: ghp_xxxxxxxxxxxx    # optional, for private repos
+    active: false              # skip this account
+```
+
+**Fields:**
+
+| Field | Required | Default | Description |
+| --- | --- | --- | --- |
+| `username` | yes | | GitHub user or organisation name |
+| `dir` | yes | | Target directory for repos |
+| `protocol` | no | `ssh` | `ssh` or `https` |
+| `token` | no | | GitHub personal access token |
+| `api_url` | no | `https://api.github.com` | GitHub Enterprise API URL |
+| `active` | no | `true` | Set `false` to skip this account |
+
+Tokens can also be set via the `GITHUB_TOKEN` environment variable (per-account `token` takes precedence).
+
+## Global flags
+
+All commands support:
+
+| Flag | Description |
+| --- | --- |
+| `-v, --verbose` | Verbose output |
+| `-q, --quiet` | Suppress non-essential output |
+| `--json` | Machine-readable JSON output |
+| `--version` | Print version |
+
+## Examples
+
+Clone all repos for a user (without config file):
+
+```sh
+gitall clone --user BoyCook --dir ~/code/boycook --protocol ssh
+```
+
+Check which repos have uncommitted work:
+
+```sh
+gitall status --dir ~/code
+```
+
+Safely update everything with auto-stash:
+
+```sh
+gitall pull --stash --rebase
+```
+
+Get JSON output for scripting:
+
+```sh
+gitall status --all --json | jq '.repos[] | select(.clean == false) | .name'
+```
+
 ## Prerequisites
 
-* GitAll is a node.js app so http://nodejs.org will be required.
-* You may want to increase the number of file descriptors allowed `ulimit -n 10000`
-	
+- Git must be installed and available on your `PATH`
+- Go 1.21+ (for building from source)
