@@ -13,6 +13,7 @@ var statusCmd = &cobra.Command{
 	Short: "Show status of all repositories",
 	Long: `Check the git status of all repositories in configured directories.
 Shows branch, ahead/behind, staged, unstaged, and untracked counts.
+Fetches remotes first for accurate behind counts — use --no-fetch to skip.
 Only dirty repos are shown by default — use --all to include clean repos.`,
 	RunE: runStatus,
 }
@@ -22,6 +23,7 @@ var (
 	statusDir         string
 	statusConcurrency int
 	statusAll         bool
+	statusNoFetch     bool
 )
 
 func init() {
@@ -31,15 +33,22 @@ func init() {
 	statusCmd.Flags().StringVar(&statusDir, "dir", "", "directory to scan (overrides config)")
 	statusCmd.Flags().IntVarP(&statusConcurrency, "concurrency", "j", 8, "number of concurrent status checks")
 	statusCmd.Flags().BoolVar(&statusAll, "all", false, "show all repos including clean ones")
+	statusCmd.Flags().BoolVar(&statusNoFetch, "no-fetch", false, "skip fetching remotes before checking status")
 }
 
 func runStatus(cmd *cobra.Command, args []string) error {
+	fetch := !statusNoFetch
+
 	repoPaths, err := resolveRepoPaths(statusUser, statusDir)
 	if err != nil {
 		return err
 	}
 
 	if repoPaths != nil {
+		if fetch {
+			output.Infof(quiet, "Fetching %d repos...", len(repoPaths))
+			fetchReposSilently(repoPaths, statusConcurrency)
+		}
 		output.Infof(quiet, "Checking %d repos...", len(repoPaths))
 		statuses := statusReposConcurrently(repoPaths, statusConcurrency)
 		for _, s := range statuses {
@@ -63,6 +72,10 @@ func runStatus(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
+		if fetch {
+			output.Infof(quiet, "Fetching %d repos in %s...", len(repos), dir)
+			fetchReposSilently(repos, statusConcurrency)
+		}
 		output.Infof(quiet, "Checking %d repos in %s...", len(repos), dir)
 
 		statuses := statusReposConcurrently(repos, statusConcurrency)
@@ -75,6 +88,27 @@ func runStatus(cmd *cobra.Command, args []string) error {
 
 	output.PrintStatusSummary(allStatuses, jsonOut)
 	return nil
+}
+
+func fetchReposSilently(repos []string, concurrency int) {
+	if concurrency < 1 {
+		concurrency = 1
+	}
+
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+
+	for _, repo := range repos {
+		wg.Add(1)
+		go func(repoPath string) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+			git.Fetch(repoPath)
+		}(repo)
+	}
+
+	wg.Wait()
 }
 
 func statusReposConcurrently(repos []string, concurrency int) []git.RepoStatus {
