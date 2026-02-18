@@ -13,7 +13,7 @@ var statusCmd = &cobra.Command{
 	Short: "Show status of all repositories",
 	Long: `Check the git status of all repositories in configured directories.
 Shows branch, ahead/behind, staged, unstaged, and untracked counts.
-Fetches remotes first for accurate behind counts — use --no-fetch to skip.
+Use --fetch to fetch remotes first for accurate behind counts.
 Only dirty repos are shown by default — use --all to include clean repos.`,
 	RunE: runStatus,
 }
@@ -23,7 +23,7 @@ var (
 	statusDir         string
 	statusConcurrency int
 	statusAll         bool
-	statusNoFetch     bool
+	statusFetch       bool
 )
 
 func init() {
@@ -33,11 +33,11 @@ func init() {
 	statusCmd.Flags().StringVar(&statusDir, "dir", "", "directory to scan (overrides config)")
 	statusCmd.Flags().IntVarP(&statusConcurrency, "concurrency", "j", 8, "number of concurrent status checks")
 	statusCmd.Flags().BoolVar(&statusAll, "all", false, "show all repos including clean ones")
-	statusCmd.Flags().BoolVar(&statusNoFetch, "no-fetch", false, "skip fetching remotes before checking status")
+	statusCmd.Flags().BoolVar(&statusFetch, "fetch", false, "fetch remotes before checking status for accurate behind counts")
 }
 
 func runStatus(cmd *cobra.Command, args []string) error {
-	fetch := !statusNoFetch
+	fetch := statusFetch
 
 	repoPaths, err := resolveRepoPaths(statusUser, statusDir)
 	if err != nil {
