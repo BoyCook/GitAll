@@ -412,3 +412,114 @@ func TestParsePortcelain_EmptyOutput(t *testing.T) {
 		t.Errorf("expected all zeros, got staged=%d unstaged=%d untracked=%d", staged, unstaged, untracked)
 	}
 }
+
+func TestRemoteProtocol_SSH(t *testing.T) {
+	dir := initTestRepo(t)
+	commitFile(t, dir, "README.md", "hello")
+	setRemote(t, dir, "git@github.com:BoyCook/GitAll.git")
+
+	expectedProtocol := "ssh"
+	if protocol := RemoteProtocol(dir); protocol != expectedProtocol {
+		t.Errorf("expected protocol %q, got %q", expectedProtocol, protocol)
+	}
+}
+
+func TestRemoteProtocol_HTTPS(t *testing.T) {
+	dir := initTestRepo(t)
+	commitFile(t, dir, "README.md", "hello")
+	setRemote(t, dir, "https://github.com/BoyCook/GitAll.git")
+
+	expectedProtocol := "https"
+	if protocol := RemoteProtocol(dir); protocol != expectedProtocol {
+		t.Errorf("expected protocol %q, got %q", expectedProtocol, protocol)
+	}
+}
+
+func TestRemoteProtocol_DefaultsToSSH(t *testing.T) {
+	dir := initTestRepo(t)
+	commitFile(t, dir, "README.md", "hello")
+
+	expectedProtocol := "ssh"
+	if protocol := RemoteProtocol(dir); protocol != expectedProtocol {
+		t.Errorf("expected protocol %q, got %q", expectedProtocol, protocol)
+	}
+}
+
+func TestDiscoverReposRecursive_FindsNestedRepos(t *testing.T) {
+	root := t.TempDir()
+
+	// Create repos at different depths
+	for _, sub := range []string{"owner1/repo1", "owner1/repo2", "owner2/repo3"} {
+		repoDir := filepath.Join(root, sub)
+		os.MkdirAll(repoDir, 0o755)
+		cmd := exec.Command("git", "init")
+		cmd.Dir = repoDir
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("git init %s failed: %s %v", sub, out, err)
+		}
+	}
+
+	// Create a non-repo directory
+	os.MkdirAll(filepath.Join(root, "notarepo"), 0o755)
+
+	repos, err := DiscoverReposRecursive(root)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expectedCount := 3
+	if len(repos) != expectedCount {
+		t.Fatalf("expected %d repos, got %d: %v", expectedCount, len(repos), repos)
+	}
+}
+
+func TestDiscoverReposRecursive_EmptyDir(t *testing.T) {
+	root := t.TempDir()
+
+	repos, err := DiscoverReposRecursive(root)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expectedCount := 0
+	if len(repos) != expectedCount {
+		t.Fatalf("expected %d repos, got %d", expectedCount, len(repos))
+	}
+}
+
+func TestDiscoverReposRecursive_SkipsNestedGitRepos(t *testing.T) {
+	root := t.TempDir()
+
+	// Create a repo with a nested repo (submodule-like)
+	outerDir := filepath.Join(root, "outer")
+	os.MkdirAll(outerDir, 0o755)
+	cmd := exec.Command("git", "init")
+	cmd.Dir = outerDir
+	cmd.CombinedOutput()
+
+	innerDir := filepath.Join(outerDir, "inner")
+	os.MkdirAll(innerDir, 0o755)
+	cmd = exec.Command("git", "init")
+	cmd.Dir = innerDir
+	cmd.CombinedOutput()
+
+	repos, err := DiscoverReposRecursive(root)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Should only find outer, not inner (skips after finding .git)
+	expectedCount := 1
+	if len(repos) != expectedCount {
+		t.Fatalf("expected %d repo, got %d: %v", expectedCount, len(repos), repos)
+	}
+}
+
+func setRemote(t *testing.T, dir, url string) {
+	t.Helper()
+	cmd := exec.Command("git", "remote", "add", "origin", url)
+	cmd.Dir = dir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("adding remote: %s %v", out, err)
+	}
+}

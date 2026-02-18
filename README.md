@@ -118,6 +118,8 @@ gitall config init                            # create default config
 gitall config list                            # display current config
 gitall config add --username BoyCook --dir ~/code/boycook
 gitall config remove BoyCook
+gitall config discover --dir ~/code           # auto-generate from existing repos
+gitall config discover --dir ~/code --dry-run # preview without writing
 ```
 
 ## Configuration

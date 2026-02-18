@@ -3,9 +3,12 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/boycook/gitall/internal/config"
+	"github.com/boycook/gitall/internal/git"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -40,6 +43,20 @@ var configRemoveCmd = &cobra.Command{
 	RunE:  runConfigRemove,
 }
 
+var configDiscoverCmd = &cobra.Command{
+	Use:   "discover",
+	Short: "Auto-generate config by scanning a directory for existing repos",
+	Long: `Recursively scan a directory for git repositories, group them by
+GitHub owner (from remote URL), and generate config entries automatically.
+Use --dry-run to preview without writing.`,
+	RunE: runConfigDiscover,
+}
+
+var (
+	discoverDir    string
+	discoverDryRun bool
+)
+
 var (
 	addUsername string
 	addDir     string
@@ -54,6 +71,11 @@ func init() {
 	configCmd.AddCommand(configInitCmd)
 	configCmd.AddCommand(configAddCmd)
 	configCmd.AddCommand(configRemoveCmd)
+	configCmd.AddCommand(configDiscoverCmd)
+
+	configDiscoverCmd.Flags().StringVar(&discoverDir, "dir", "", "directory to scan recursively (required)")
+	configDiscoverCmd.Flags().BoolVar(&discoverDryRun, "dry-run", false, "preview discovered accounts without writing config")
+	configDiscoverCmd.MarkFlagRequired("dir")
 
 	configAddCmd.Flags().StringVar(&addUsername, "username", "", "GitHub username or organisation (required)")
 	configAddCmd.Flags().StringVar(&addDir, "dir", "", "target directory for repos (required)")
@@ -142,6 +164,99 @@ func runConfigAdd(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Added account %q to %s\n", addUsername, path)
+	return nil
+}
+
+func runConfigDiscover(cmd *cobra.Command, args []string) error {
+	repos, err := git.DiscoverReposRecursive(discoverDir)
+	if err != nil {
+		return err
+	}
+
+	if len(repos) == 0 {
+		fmt.Println("No git repositories found.")
+		return nil
+	}
+
+	type ownerInfo struct {
+		protocol string
+		dirs     map[string]bool
+	}
+
+	owners := make(map[string]*ownerInfo)
+
+	for _, repoPath := range repos {
+		owner := git.RemoteOwner(repoPath)
+		if owner == "" {
+			continue
+		}
+
+		parentDir := filepath.Dir(repoPath)
+		lowerOwner := strings.ToLower(owner)
+
+		if _, ok := owners[lowerOwner]; !ok {
+			owners[lowerOwner] = &ownerInfo{
+				protocol: git.RemoteProtocol(repoPath),
+				dirs:     map[string]bool{parentDir: true},
+			}
+		} else {
+			owners[lowerOwner].dirs[parentDir] = true
+		}
+	}
+
+	if len(owners) == 0 {
+		fmt.Println("No repos with GitHub remotes found.")
+		return nil
+	}
+
+	var accounts []config.Account
+	for owner, info := range owners {
+		for dir := range info.dirs {
+			accounts = append(accounts, config.Account{
+				Username: owner,
+				Dir:      dir,
+				Protocol: info.protocol,
+			})
+		}
+	}
+
+	bold := color.New(color.Bold)
+	green := color.New(color.FgGreen)
+
+	bold.Printf("Discovered %d account(s) from %d repo(s):\n\n", len(accounts), len(repos))
+	for _, acct := range accounts {
+		green.Printf("  %s", acct.Username)
+		fmt.Printf("  %s  (%s)\n", acct.Dir, acct.Protocol)
+	}
+
+	if discoverDryRun {
+		fmt.Println("\nDry run — no config written.")
+		return nil
+	}
+
+	path := config.DefaultPath()
+	cfg, err := config.Load(path)
+	if err != nil {
+		cfg = &config.Config{}
+	}
+
+	added := 0
+	for _, acct := range accounts {
+		if err := cfg.AddAccount(acct); err == nil {
+			added++
+		}
+	}
+
+	if added == 0 {
+		fmt.Println("\nAll discovered accounts already exist in config.")
+		return nil
+	}
+
+	if err := config.Save(cfg, path); err != nil {
+		return err
+	}
+
+	fmt.Printf("\nAdded %d account(s) to %s\n", added, path)
 	return nil
 }
 

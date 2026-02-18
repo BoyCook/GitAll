@@ -353,6 +353,42 @@ func RemoteOwner(repoPath string) string {
 	return ""
 }
 
+func RemoteProtocol(repoPath string) string {
+	url := remoteURL(repoPath)
+	if strings.HasPrefix(url, "git@") || strings.HasPrefix(url, "ssh://") {
+		return "ssh"
+	}
+	if strings.HasPrefix(url, "https://") || strings.HasPrefix(url, "http://") {
+		return "https"
+	}
+	return "ssh"
+}
+
+func DiscoverReposRecursive(dir string) ([]string, error) {
+	var repos []string
+	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if !d.IsDir() {
+			return nil
+		}
+		if d.Name() == "node_modules" || d.Name() == "vendor" || d.Name() == ".terraform" {
+			return filepath.SkipDir
+		}
+		gitDir := filepath.Join(path, ".git")
+		if info, err := os.Stat(gitDir); err == nil && info.IsDir() {
+			repos = append(repos, path)
+			return filepath.SkipDir
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("walking directory: %w", err)
+	}
+	return repos, nil
+}
+
 func runGit(dir string, args ...string) (string, error) {
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
