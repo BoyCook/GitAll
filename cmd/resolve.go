@@ -5,20 +5,21 @@ import (
 	"strings"
 
 	"github.com/boycook/gitall/internal/config"
+	"github.com/boycook/gitall/internal/git"
 )
 
 func resolveRepoPaths(user, dir string) ([]string, error) {
 	if dir != "" {
-		return nil, nil
+		repos, err := git.DiscoverRepos(dir)
+		if err != nil {
+			return nil, err
+		}
+		return repos, nil
 	}
 
 	cfg, err := config.Load(config.DefaultPath())
 	if err != nil {
-		return nil, nil
-	}
-
-	if !cfg.HasRepos() {
-		return nil, nil
+		return nil, fmt.Errorf("no config found.\nRun 'gitall config init' to create one, or use --dir to specify a directory")
 	}
 
 	var paths []string
@@ -34,31 +35,4 @@ func resolveRepoPaths(user, dir string) ([]string, error) {
 	}
 
 	return paths, nil
-}
-
-func resolveDirs(user, dir string) ([]string, error) {
-	if dir != "" {
-		return []string{dir}, nil
-	}
-
-	cfg, err := config.Load(config.DefaultPath())
-	if err != nil {
-		return nil, fmt.Errorf("no --dir flag and no config found.\nRun 'gitall config init' to create one, or use --dir to specify a directory")
-	}
-
-	active := cfg.ActiveAccounts()
-	var dirs []string
-
-	for _, acct := range active {
-		if user != "" && !strings.EqualFold(acct.Username, user) {
-			continue
-		}
-		dirs = append(dirs, acct.Dir)
-	}
-
-	if len(dirs) == 0 {
-		return nil, fmt.Errorf("no matching directories found")
-	}
-
-	return dirs, nil
 }

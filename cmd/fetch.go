@@ -36,34 +36,9 @@ func runFetch(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if repoPaths != nil {
-		output.Infof(quiet, "Fetching %d repos...", len(repoPaths))
-		results := fetchRepos(repoPaths)
-		output.PrintSummary(results, "Fetch", jsonOut)
-		return nil
-	}
-
-	dirs, err := resolveDirs(fetchUser, fetchDir)
-	if err != nil {
-		return err
-	}
-
-	var allResults []git.RepoResult
-
-	for _, dir := range dirs {
-		repos, err := git.DiscoverRepos(dir)
-		if err != nil {
-			output.Errorf("Error scanning %s: %s", dir, err)
-			continue
-		}
-
-		output.Infof(quiet, "Fetching %d repos in %s...", len(repos), dir)
-
-		results := fetchRepos(repos)
-		allResults = append(allResults, results...)
-	}
-
-	output.PrintSummary(allResults, "Fetch", jsonOut)
+	output.Infof(quiet, "Fetching %d repos...", len(repoPaths))
+	results := fetchRepos(repoPaths)
+	output.PrintSummary(results, "Fetch", jsonOut)
 	return nil
 }
 

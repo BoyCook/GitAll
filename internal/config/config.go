@@ -15,8 +15,7 @@ var validProtocols = map[string]bool{
 }
 
 type Config struct {
-	Accounts []Account `yaml:"accounts,omitempty"`
-	Repos    []Repo    `yaml:"repos,omitempty"`
+	Repos []Repo `yaml:"repos,omitempty"`
 }
 
 type Repo struct {
@@ -24,22 +23,6 @@ type Repo struct {
 	Owner    string `yaml:"owner"`
 	Dir      string `yaml:"dir"`
 	Protocol string `yaml:"protocol"`
-}
-
-type Account struct {
-	Username string `yaml:"username"`
-	Dir      string `yaml:"dir"`
-	Protocol string `yaml:"protocol"`
-	Token    string `yaml:"token,omitempty"`
-	APIURL   string `yaml:"api_url,omitempty"`
-	Active   *bool  `yaml:"active,omitempty"`
-}
-
-func (a Account) IsActive() bool {
-	if a.Active == nil {
-		return true
-	}
-	return *a.Active
 }
 
 func DefaultPath() string {
@@ -59,14 +42,6 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("parsing config file: %w", err)
 	}
 
-	for i := range cfg.Accounts {
-		cfg.Accounts[i].Dir = expandPath(cfg.Accounts[i].Dir)
-
-		if cfg.Accounts[i].Protocol == "" {
-			cfg.Accounts[i].Protocol = "ssh"
-		}
-	}
-
 	for i := range cfg.Repos {
 		cfg.Repos[i].Dir = expandPath(cfg.Repos[i].Dir)
 
@@ -83,20 +58,8 @@ func Load(path string) (*Config, error) {
 }
 
 func (c *Config) Validate() error {
-	if len(c.Accounts) == 0 && len(c.Repos) == 0 {
-		return fmt.Errorf("config must contain at least one account or repo")
-	}
-
-	for i, acct := range c.Accounts {
-		if acct.Username == "" {
-			return fmt.Errorf("account %d: username is required", i+1)
-		}
-		if acct.Dir == "" {
-			return fmt.Errorf("account %d (%s): dir is required", i+1, acct.Username)
-		}
-		if !validProtocols[acct.Protocol] {
-			return fmt.Errorf("account %d (%s): invalid protocol %q (must be ssh or https)", i+1, acct.Username, acct.Protocol)
-		}
+	if len(c.Repos) == 0 {
+		return fmt.Errorf("config must contain at least one repo")
 	}
 
 	for i, repo := range c.Repos {
@@ -111,26 +74,6 @@ func (c *Config) Validate() error {
 		}
 	}
 
-	return nil
-}
-
-func (c *Config) ActiveAccounts() []Account {
-	var active []Account
-	for _, acct := range c.Accounts {
-		if acct.IsActive() {
-			active = append(active, acct)
-		}
-	}
-	return active
-}
-
-func (c *Config) AddAccount(acct Account) error {
-	for _, existing := range c.Accounts {
-		if strings.EqualFold(existing.Username, acct.Username) {
-			return fmt.Errorf("account %q already exists", acct.Username)
-		}
-	}
-	c.Accounts = append(c.Accounts, acct)
 	return nil
 }
 
@@ -156,26 +99,15 @@ func (c *Config) AddRepo(repo Repo) error {
 	return nil
 }
 
-func (c *Config) RemoveAccount(username string) error {
-	for i, acct := range c.Accounts {
-		if strings.EqualFold(acct.Username, username) {
-			c.Accounts = append(c.Accounts[:i], c.Accounts[i+1:]...)
-			return nil
-		}
-	}
-	return fmt.Errorf("account %q not found", username)
-}
-
 func DefaultConfig() *Config {
 	home, _ := os.UserHomeDir()
-	active := true
 	return &Config{
-		Accounts: []Account{
+		Repos: []Repo{
 			{
-				Username: "your-github-username",
-				Dir:      filepath.Join(home, "code"),
+				Name:     "example-repo",
+				Owner:    "your-github-username",
+				Dir:      filepath.Join(home, "code", "example-repo"),
 				Protocol: "ssh",
-				Active:   &active,
 			},
 		},
 	}

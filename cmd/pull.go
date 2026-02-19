@@ -51,37 +51,10 @@ func runPull(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if repoPaths != nil {
-		repos := filterOwnedRepos(repoPaths)
-		output.Infof(quiet, "Pulling %d repos...", len(repos))
-		results := pullRepos(repos, opts)
-		output.PrintSummary(results, "Pull", jsonOut)
-		return nil
-	}
-
-	dirs, err := resolveDirs(pullUser, pullDir)
-	if err != nil {
-		return err
-	}
-
-	var allResults []git.RepoResult
-
-	for _, dir := range dirs {
-		repos, err := git.DiscoverRepos(dir)
-		if err != nil {
-			output.Errorf("Error scanning %s: %s", dir, err)
-			continue
-		}
-
-		repos = filterOwnedRepos(repos)
-
-		output.Infof(quiet, "Pulling %d repos in %s...", len(repos), dir)
-
-		results := pullRepos(repos, opts)
-		allResults = append(allResults, results...)
-	}
-
-	output.PrintSummary(allResults, "Pull", jsonOut)
+	repos := filterOwnedRepos(repoPaths)
+	output.Infof(quiet, "Pulling %d repos...", len(repos))
+	results := pullRepos(repos, opts)
+	output.PrintSummary(results, "Pull", jsonOut)
 	return nil
 }
 

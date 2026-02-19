@@ -37,38 +37,11 @@ func runList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if repoPaths != nil {
-		statuses := listReposConcurrently(repoPaths, listConcurrency)
-		for _, s := range statuses {
-			output.PrintRepoList(s)
-		}
-		output.PrintStatusSummary(statuses, jsonOut)
-		return nil
+	statuses := listReposConcurrently(repoPaths, listConcurrency)
+	for _, s := range statuses {
+		output.PrintRepoList(s)
 	}
-
-	dirs, err := resolveDirs(listUser, listDir)
-	if err != nil {
-		return err
-	}
-
-	var allStatuses []git.RepoStatus
-
-	for _, dir := range dirs {
-		repos, err := git.DiscoverRepos(dir)
-		if err != nil {
-			output.Errorf("Error scanning %s: %s", dir, err)
-			continue
-		}
-
-		statuses := listReposConcurrently(repos, listConcurrency)
-		for _, s := range statuses {
-			output.PrintRepoList(s)
-		}
-
-		allStatuses = append(allStatuses, statuses...)
-	}
-
-	output.PrintStatusSummary(allStatuses, jsonOut)
+	output.PrintStatusSummary(statuses, jsonOut)
 	return nil
 }
 
@@ -94,4 +67,3 @@ func listReposConcurrently(repos []string, concurrency int) []git.RepoStatus {
 	wg.Wait()
 	return results
 }
-

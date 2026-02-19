@@ -37,56 +37,21 @@ func init() {
 }
 
 func runStatus(cmd *cobra.Command, args []string) error {
-	fetch := statusFetch
-
 	repoPaths, err := resolveRepoPaths(statusUser, statusDir)
 	if err != nil {
 		return err
 	}
 
-	if repoPaths != nil {
-		if fetch {
-			output.Infof(quiet, "Fetching %d repos...", len(repoPaths))
-			fetchReposSilently(repoPaths, statusConcurrency)
-		}
-		output.Infof(quiet, "Checking %d repos...", len(repoPaths))
-		statuses := statusReposConcurrently(repoPaths, statusConcurrency)
-		for _, s := range statuses {
-			output.PrintRepoStatus(s, statusAll || verbose)
-		}
-		output.PrintStatusSummary(statuses, jsonOut)
-		return nil
+	if statusFetch {
+		output.Infof(quiet, "Fetching %d repos...", len(repoPaths))
+		fetchReposSilently(repoPaths, statusConcurrency)
 	}
-
-	dirs, err := resolveDirs(statusUser, statusDir)
-	if err != nil {
-		return err
+	output.Infof(quiet, "Checking %d repos...", len(repoPaths))
+	statuses := statusReposConcurrently(repoPaths, statusConcurrency)
+	for _, s := range statuses {
+		output.PrintRepoStatus(s, statusAll || verbose)
 	}
-
-	var allStatuses []git.RepoStatus
-
-	for _, dir := range dirs {
-		repos, err := git.DiscoverRepos(dir)
-		if err != nil {
-			output.Errorf("Error scanning %s: %s", dir, err)
-			continue
-		}
-
-		if fetch {
-			output.Infof(quiet, "Fetching %d repos in %s...", len(repos), dir)
-			fetchReposSilently(repos, statusConcurrency)
-		}
-		output.Infof(quiet, "Checking %d repos in %s...", len(repos), dir)
-
-		statuses := statusReposConcurrently(repos, statusConcurrency)
-		for _, s := range statuses {
-			output.PrintRepoStatus(s, statusAll || verbose)
-		}
-
-		allStatuses = append(allStatuses, statuses...)
-	}
-
-	output.PrintStatusSummary(allStatuses, jsonOut)
+	output.PrintStatusSummary(statuses, jsonOut)
 	return nil
 }
 
@@ -133,4 +98,3 @@ func statusReposConcurrently(repos []string, concurrency int) []git.RepoStatus {
 	wg.Wait()
 	return results
 }
-
