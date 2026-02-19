@@ -89,6 +89,19 @@ func (c *Config) RepoDirs() []string {
 	return dirs
 }
 
+func (c *Config) PruneRepos() []Repo {
+	var kept, removed []Repo
+	for _, repo := range c.Repos {
+		if _, err := os.Stat(repo.Dir); os.IsNotExist(err) {
+			removed = append(removed, repo)
+		} else {
+			kept = append(kept, repo)
+		}
+	}
+	c.Repos = kept
+	return removed
+}
+
 func (c *Config) AddRepo(repo Repo) error {
 	for _, existing := range c.Repos {
 		if existing.Dir == repo.Dir {

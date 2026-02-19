@@ -29,6 +29,12 @@ var configInitCmd = &cobra.Command{
 	RunE:  runConfigInit,
 }
 
+var configPruneCmd = &cobra.Command{
+	Use:   "prune",
+	Short: "Remove repos whose directories no longer exist",
+	RunE:  runConfigPrune,
+}
+
 var configDiscoverCmd = &cobra.Command{
 	Use:   "discover",
 	Short: "Auto-generate config by scanning a directory for existing repos",
@@ -37,6 +43,8 @@ GitHub owner (from remote URL), and generate config entries automatically.
 Use --dry-run to preview without writing.`,
 	RunE: runConfigDiscover,
 }
+
+var pruneDryRun bool
 
 var (
 	discoverDir    string
@@ -47,7 +55,10 @@ func init() {
 	rootCmd.AddCommand(configCmd)
 	configCmd.AddCommand(configListCmd)
 	configCmd.AddCommand(configInitCmd)
+	configCmd.AddCommand(configPruneCmd)
 	configCmd.AddCommand(configDiscoverCmd)
+
+	configPruneCmd.Flags().BoolVar(&pruneDryRun, "dry-run", false, "preview what would be removed without writing config")
 
 	configDiscoverCmd.Flags().StringVar(&discoverDir, "dir", "", "directory to scan recursively (required)")
 	configDiscoverCmd.Flags().BoolVar(&discoverDryRun, "dry-run", false, "preview discovered repos without writing config")
@@ -94,6 +105,39 @@ func runConfigInit(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Created default config at %s\n", path)
 	fmt.Println("Edit it to add your repositories.")
+	return nil
+}
+
+func runConfigPrune(cmd *cobra.Command, args []string) error {
+	path := config.DefaultPath()
+	cfg, err := config.Load(path)
+	if err != nil {
+		return fmt.Errorf("no config found at %s — run 'gitall config init' to create one", path)
+	}
+
+	removed := cfg.PruneRepos()
+
+	if len(removed) == 0 {
+		fmt.Println("All repo directories exist — nothing to prune.")
+		return nil
+	}
+
+	red := color.New(color.FgRed)
+	for _, repo := range removed {
+		red.Printf("  removed: %s", repo.Name)
+		fmt.Printf("  %s\n", repo.Dir)
+	}
+
+	if pruneDryRun {
+		fmt.Printf("\nDry run — would remove %d repo(s).\n", len(removed))
+		return nil
+	}
+
+	if err := config.Save(cfg, path); err != nil {
+		return err
+	}
+
+	fmt.Printf("\nPruned %d repo(s) from %s\n", len(removed), path)
 	return nil
 }
 
